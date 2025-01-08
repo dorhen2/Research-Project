@@ -19,7 +19,7 @@ switch orderIndex
             % returns a table where only the i row changes
 
             [population] = populationCal(OnlyOneStepScenariosTable);
-            [EmissionsByYears, ConsumptionAmounts, Resources, WaterFromFood] = FullScenario(DataBase, OnlyOneStepScenariosTable, Years,population,orderIndex,i);
+            [EmissionsByYears, ConsumptionAmounts, Resources, WaterFromFood,ElectricityBySources] = FullScenario(DataBase, OnlyOneStepScenariosTable, Years,population,orderIndex,i);
             EmissionsSumCurrentBase = EmissionsSumCalcOnlyOneStep(EmissionsByYears,Years);
             GlobalLocalEmissions = CalcGlobalLocal(EmissionsByYears);
             GlobalDiff = sum(GlobalLocalEmissions{2,width(GlobalLocalEmissions)}{1,:}) - sum(GlobalLocalEmissions{2,1}{1,:});
@@ -48,12 +48,12 @@ switch orderIndex
         % will return 19X34 table, each cell is the change of this factor
         % for that year, when 2050 is dictated by "the three scenarios".
         [population] = populationCal(AllButOneScenariosTable);
-        [EmissionsByYearsFull, ConsumptionAmountsFull, ResourcesFull, WaterFromFoodFull] = FullScenario(DataBase, AllButOneScenariosTable, Years, population,orderIndex,0);
+        [EmissionsByYearsFull, ConsumptionAmountsFull, ResourcesFull, WaterFromFoodFull,ElectricityBySources] = FullScenario(DataBase, AllButOneScenariosTable, Years, population,orderIndex,0);
         GlobalLocalEmissionsFull = CalcGlobalLocal(EmissionsByYearsFull);
         for i = 1:ScenarioNumber
             AllButOneScenariosTable = AllButOneChangesByScenarios(DataBase, i, Years, ScenariosAndValues{:,scenarioIndex});
             [population] = populationCal(AllButOneScenariosTable);
-            [EmissionsByYears, ConsumptionAmounts, Resources, WaterFromFood] = FullScenario(DataBase, AllButOneScenariosTable, Years, population,orderIndex,0);
+            [EmissionsByYears, ConsumptionAmounts, Resources, WaterFromFood,ElectricityBySources] = FullScenario(DataBase, AllButOneScenariosTable, Years, population,orderIndex,0);
             CurrentEmissions = EmissionsSumCalcAllButOne(EmissionsByYears, EmissionsByYearsFull,Years);
             GlobalLocalEmissions = CalcGlobalLocal(EmissionsByYears);
             GlobalDiff = sum(GlobalLocalEmissionsFull{2,width(GlobalLocalEmissionsFull)}{1,:}) - sum(GlobalLocalEmissions{2,width(GlobalLocalEmissions)}{1,:});
@@ -80,24 +80,34 @@ switch orderIndex
         % second table: population size per year, seperationg israel and the palestinians.
         % returns: total Co2 by category, amounts of water/fuels/construction materials, all other resources by category, water for food.
 
-        [FullScenariosTable1] = AllButOneChangesByScenarios(DataBase, 0, Years, ScenariosAndValues{:,4}, 'MileStones', false);
-        [population] = populationCal(FullScenariosTable1);
-        [EmissionsByYearsTest1, ConsumptionAmounts1, Resources1, WaterFromFood1] = FullScenario(DataBase, FullScenariosTable1,Years,population,orderIndex,0);
+        [FullScenariosTableBAU] = AllButOneChangesByScenarios(DataBase, 0, Years, ScenariosAndValues{:,4}, 'MileStones', false);
+        [population] = populationCal(FullScenariosTableBAU);
+        [DataBase.NZOscenarioTable,NZOscenarioBAU,accessToken] = nzoFunction('B.A.U',DataBase,clientID, sheetID,clientSecret,refreshToken, script_id, accessToken,lastTokenTime);
+        [EmissionsByYearsBAU, ConsumptionAmountsBAU, ResourcesBAU, WaterFromFoodBAU,ElectricityBySourcesBAU] = FullScenario(DataBase, FullScenariosTableBAU,Years,population,orderIndex,0,'B.A.U');
 
-        [FullScenariosTable2] = AllButOneChangesByScenarios(DataBase, 0, Years, ScenariosAndValues{:,7}, 'MileStones', false);
-        [population] = populationCal(FullScenariosTable2);
-        [EmissionsByYearsTest2, ConsumptionAmounts2, Resources2, WaterFromFood2] = FullScenarioCompare(DataBase, FullScenariosTable2,Years,population,WaterFromFood1,orderIndex);
+        [FullScenariosTableMOD] = AllButOneChangesByScenarios(DataBase, 0, Years, ScenariosAndValues{:,7}, 'MileStones', false);
+        [population] = populationCal(FullScenariosTableMOD);
+        [DataBase.NZOscenarioTable,NZOscenarioMOD,accessToken] = nzoFunction('MOD',DataBase,clientID, sheetID,clientSecret,refreshToken, script_id, accessToken,lastTokenTime);
+        [EmissionsByYearsMOD, ConsumptionAmountsMOD, ResourcesMOD, WaterFromFoodMOD,ElectricityBySourcesMOD] = FullScenarioCompare(DataBase, FullScenariosTableMOD,Years,population,WaterFromFoodBAU,orderIndex,'MOD');
 
-        [FullScenariosTable3] = AllButOneChangesByScenarios(DataBase, 0, Years, ScenariosAndValues{:,8}, 'MileStones', false);
-        [population] = populationCal(FullScenariosTable3);
-        [EmissionsByYearsTest3, ConsumptionAmounts3, Resources3, WaterFromFood3] = FullScenarioCompare(DataBase, FullScenariosTable3,Years,population,WaterFromFood1,orderIndex);
+        [FullScenariosTableADV] = AllButOneChangesByScenarios(DataBase, 0, Years, ScenariosAndValues{:,8}, 'MileStones', false);
+        [population] = populationCal(FullScenariosTableADV);
+        [DataBase.NZOscenarioTable,NZOscenarioADV,accessToken] = nzoFunction('ADV', DataBase,clientID, sheetID,clientSecret,refreshToken, script_id, accessToken,lastTokenTime);
+        [EmissionsByYearsADV, ConsumptionAmountsADV, ResourcesADV, WaterFromFoodADV,ElectricityBySourcesADV] = FullScenarioCompare(DataBase, FullScenariosTableADV,Years,population,WaterFromFoodBAU,orderIndex,'ADV');
 
+        [FullScenariosTableADV] = AllButOneChangesByScenarios(DataBase, 0, Years, ScenariosAndValues{:,8}, 'MileStones', false);
+        [population] = populationCal(FullScenariosTableADV);
+        [DataBase.NZOscenarioTable,NZOscenarioADV_NUC,accessToken] = nzoFunction('ADV+NUC', DataBase,clientID, sheetID,clientSecret,refreshToken, script_id, accessToken,lastTokenTime);
+        [EmissionsByYearsADV_NUC, ConsumptionAmountsADV_NUC, ResourcesADV_NUC, WaterFromFoodADV_NUC,ElectricityBySourcesADV_NUC] = FullScenarioCompare(DataBase, FullScenariosTableADV,Years,population,WaterFromFoodBAU,orderIndex,'ADV+NUC');
+ 
+      
+        
         disp('All the steps together');
 
 
     case 5 %% Buisness as usual
         FullBAUScenariosTable = AllButOneChangesByScenarios(DataBase, 0, Years, ScenariosAndValues{:,4});
-        [EmissionsByYearsBAU, ConsumptionAmountsBAU,ResourcesBAU, WaterFromFoodBAU] = FullScenario(DataBase, FullBAUScenariosTable, Years,population,orderIndex,0);
+        [EmissionsByYearsBAU, ConsumptionAmountsBAU,ResourcesBAU, WaterFromFoodBAU,ElectricityBySourcesBAU] = FullScenario(DataBase, FullBAUScenariosTable, Years,population,orderIndex,0);
 
         YearlyEmissionsBAU = YearlySumCalc(EmissionsByYearsBAU);
         disp('Buisness as usual');
@@ -133,17 +143,17 @@ switch orderIndex
         % returns: total Co2 by category, amounts of water/fuels/construction materials, all other resources by category, water for food.
 
         % NO POLICY
-        [FullScenariosTable1] = AllButOneChangesByScenarios(DataBase, 0, Years, ScenariosAndValues{:,4}, 'MileStones', false);
-        [population] = populationCal(FullScenariosTable1);
-        [EmissionsByYearsTest1, ConsumptionAmounts1, Resources1, WaterFromFood1] = FullScenario(DataBase, FullScenariosTable1,Years,population,orderIndex,0);
+        [FullScenariosTableBAU] = AllButOneChangesByScenarios(DataBase, 0, Years, ScenariosAndValues{:,4}, 'MileStones', false);
+        [population] = populationCal(FullScenariosTableBAU);
+        [EmissionsByYearsBAU, ConsumptionAmountsBAU, ResourcesBAU, WaterFromFoodBAU,ElectricityBySourcesBAU] = FullScenario(DataBase, FullScenariosTableBAU,Years,population,orderIndex,0);
 
         % NEW POLICY
         Years = 19; % for 2035
         NewValues = readtable("The Three Scenarios.xlsx", 'Sheet', 'Scenarios', 'Range', 'K2:K20', 'ReadRowNames', false, 'ReadVariableNames', false);
         ScenariosAndValues{:, 8} = NewValues{:,:};
-        [FullScenariosTable3] = AllButOneChangesByScenarios(DataBase, 0, Years, ScenariosAndValues{:,8}, 'MileStones', false);
-        [population] = populationCal(FullScenariosTable3);
-        [EmissionsByYearsTest3, ConsumptionAmounts3, Resources3, WaterFromFood3] = FullScenarioCompare(DataBase, FullScenariosTable3,Years,population,WaterFromFood1,orderIndex);
+        [FullScenariosTableADV] = AllButOneChangesByScenarios(DataBase, 0, Years, ScenariosAndValues{:,8}, 'MileStones', false);
+        [population] = populationCal(FullScenariosTableADV);
+        [EmissionsByYearsADV, ConsumptionAmountsADV, ResourcesADV, WaterFromFoodADV,ElectricityBySourcesADV] = FullScenarioCompare(DataBase, FullScenariosTableADV,Years,population,WaterFromFoodBAU,orderIndex);
 
     case 8 % Sensitivity Analysis - +- 10%
 
@@ -165,22 +175,22 @@ switch orderIndex
             OriginalPrecentage = ScenariosAndValues{ScenarioIndex, 8}; % saving the original value
 
             % running FULL SCENARIO 3 times: as is, +10%, -10%.
-            [FullScenariosTable1] = AllButOneChangesByScenarios(DataBase, 0, Years, ScenariosAndValues{:,8}, 'MileStones', false);
-            [population] = populationCal(FullScenariosTable1);
-            [EmissionsByYearsTest1, ConsumptionAmounts1, Resources1, WaterFromFood1] = FullScenario(DataBase, FullScenariosTable1,Years,population,orderIndex,0);
-            TotalEmission1 = CalcUpDownStream(EmissionsByYearsTest1);
+            [FullScenariosTableBAU] = AllButOneChangesByScenarios(DataBase, 0, Years, ScenariosAndValues{:,8}, 'MileStones', false);
+            [population] = populationCal(FullScenariosTableBAU);
+            [EmissionsByYearsBAU, ConsumptionAmountsBAU, ResourcesBAU, WaterFromFoodBAU,ElectricityBySourcesBAU] = FullScenario(DataBase, FullScenariosTableBAU,Years,population,orderIndex,0);
+            TotalEmission1 = CalcUpDownStream(EmissionsByYearsBAU);
 
             ScenariosAndValues{ScenarioIndex, 8} = OriginalPrecentage * 1.1; % new calculation for +10%
-            [FullScenariosTable2] = AllButOneChangesByScenarios(DataBase, 0, Years, ScenariosAndValues{:,8}, 'MileStones', false);
-            [population] = populationCal(FullScenariosTable2);
-            [EmissionsByYearsTest2, ConsumptionAmounts2, Resources2, WaterFromFood2] = FullScenario(DataBase, FullScenariosTable2,Years,population,orderIndex,0);
-            TotalEmission2 = CalcUpDownStream(EmissionsByYearsTest2);
+            [FullScenariosTableMOD] = AllButOneChangesByScenarios(DataBase, 0, Years, ScenariosAndValues{:,8}, 'MileStones', false);
+            [population] = populationCal(FullScenariosTableMOD);
+            [EmissionsByYearsMOD, ConsumptionAmountsMOD, ResourcesMOD, WaterFromFoodMOD,ElectricityBySourcesMOD] = FullScenario(DataBase, FullScenariosTableMOD,Years,population,orderIndex,0);
+            TotalEmission2 = CalcUpDownStream(EmissionsByYearsMOD);
 
             ScenariosAndValues{ScenarioIndex, 8} = OriginalPrecentage * 0.9 ; % new calculation for -10%
-            [FullScenariosTable3] = AllButOneChangesByScenarios(DataBase, 0, Years, ScenariosAndValues{:,8}, 'MileStones', false);
-            [population] = populationCal(FullScenariosTable3);
-            [EmissionsByYearsTest3, ConsumptionAmounts3, Resources3, WaterFromFood3] = FullScenario(DataBase, FullScenariosTable3,Years,population,orderIndex,0);
-            TotalEmission3 = CalcUpDownStream(EmissionsByYearsTest3);
+            [FullScenariosTableADV] = AllButOneChangesByScenarios(DataBase, 0, Years, ScenariosAndValues{:,8}, 'MileStones', false);
+            [population] = populationCal(FullScenariosTableADV);
+            [EmissionsByYearsADV, ConsumptionAmountsADV, ResourcesADV, WaterFromFoodADV,ElectricityBySourcesADV] = FullScenario(DataBase, FullScenariosTableADV,Years,population,orderIndex,0);
+            TotalEmission3 = CalcUpDownStream(EmissionsByYearsADV);
 
             BiggerMinusOriginal = TotalEmission2 - TotalEmission1;
             OriginalMinusSmaller = TotalEmission1 - TotalEmission3;

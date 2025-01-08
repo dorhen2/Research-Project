@@ -124,9 +124,11 @@ legend(flip(b), flip(CostsSum1.Properties.RowNames(1:4)), 'FontSize',10,'Locatio
 % To be used after selecting "all steps together" 
 
 %preparations
-[AreaSum1, CostsSum1, WaterSum1] = CalcTotalResources(Resources1, ConsumptionAmounts1,WaterFromFood1);
-[AreaSum2, CostsSum2, WaterSum2] = CalcTotalResources(Resources2, ConsumptionAmounts2, WaterFromFood2);
-[AreaSum3, CostsSum3, WaterSum3] = CalcTotalResources(Resources3, ConsumptionAmounts3,WaterFromFood3);
+[AreaSumBAU, CostsSumBAU, WaterSumBAU] = CalcTotalResources(ResourcesBAU, ConsumptionAmountsBAU, WaterFromFoodBAU);
+[AreaSumMOD, CostsSumMOD, WaterSumMOD] = CalcTotalResources(ResourcesMOD, ConsumptionAmountsMOD, WaterFromFoodMOD);
+[AreaSumADV, CostsSumADV, WaterSumADV] = CalcTotalResources(ResourcesADV, ConsumptionAmountsADV, WaterFromFoodADV);
+[AreaSumADV_NUC, CostsSumADV_NUC, WaterSumADV_NUC] = CalcTotalResources(ResourcesADV_NUC, ConsumptionAmountsADV_NUC, WaterFromFoodADV_NUC);
+
 
 % Arranging the data and building the graph
 
@@ -168,17 +170,18 @@ colors4Cost = [
  
 t = tiledlayout(1,3);
 nexttile
-NoPolicy = CalcUpDownStream(EmissionsByYearsTest1);
+NoPolicy = CalcUpDownStream(EmissionsByYearsBAU);
 %NoPolicy(11,:) = [];
-Scenario1 = CalcUpDownStream(EmissionsByYearsTest2);
+Scenario1 = CalcUpDownStream(EmissionsByYearsMOD);
 % Scenario1(11,:) = [];
-Scenario2 = CalcUpDownStream(EmissionsByYearsTest3);
+Scenario2 = CalcUpDownStream(EmissionsByYearsADV);
 %Scenario2(11,:) = [];
-Order = {'Base Year','No Policy - 2050', 'Moderate - 2050', 'Advanced - 2050'};
+Scenario3 = CalcUpDownStream(EmissionsByYearsADV_NUC);
+Order = {'Base Year','No Policy - 2050', 'Moderate - 2050', 'Advanced - 2050', 'Advanced + Nuclear - 2050'};
 
-y = [NoPolicy{1:11,1}, NoPolicy{1:11,34}, Scenario1{1:11,34}, Scenario2{1:11,34}];
+y = [NoPolicy{1:11,1}, NoPolicy{1:11,34}, Scenario1{1:11,34}, Scenario2{1:11,34}, Scenario3{1:11,34}];
 y = y';
-x = categorical({'Base Year', 'No Policy - 2050', 'Moderate - 2050', 'Advanced - 2050'});
+x = categorical({'Base Year', 'No Policy - 2050', 'Moderate - 2050', 'Advanced - 2050', 'Advanced + Nuclear - 2050'});
 x = reordercats(x, Order);
 b = bar(x, y, 'stacked');
 
@@ -196,53 +199,61 @@ ylabel('MtCO2Eq', 'FontSize', 20);
 legend(flip(b), flip(NoPolicy.Properties.RowNames(1:11)), 'FontSize',8,'Location','northwest')
 
 
-AreaSum1 = sortrows(AreaSum1,1,'descend'); 
-WaterSum1 = sortrows(WaterSum1,1,'descend');
-CostsSum1 = sortrows(CostsSum1,1,'descend');
-AreaSum1(1, :) = [];
-WaterSum1(1, :) = [];
-CostsSum1(1, :) = [];
-AreaSum2 = sortrows(AreaSum2,1,'descend');
-WaterSum2 = sortrows(WaterSum2,1,'descend');
-CostsSum2 = sortrows(CostsSum2,1,'descend');
-AreaSum2(1, :) = [];
-WaterSum2(1, :) = [];
-CostsSum2(1, :) = [];
-AreaSum3 = sortrows(AreaSum3,1,'descend');
-WaterSum3 = sortrows(WaterSum3,1,'descend');
-CostsSum3 = sortrows(CostsSum3,1,'descend');
-AreaSum3(1, :) = [];
-WaterSum3(1, :) = [];
-CostsSum3(1, :) = [];
+AreaSumBAU = sortrows(AreaSumBAU, 1, 'descend');
+WaterSumBAU = sortrows(WaterSumBAU, 1, 'descend');
+CostsSumBAU = sortrows(CostsSumBAU, 1, 'descend');
+AreaSumBAU(1, :) = [];
+WaterSumBAU(1, :) = [];
+CostsSumBAU(1, :) = [];
+
+AreaSumMOD = sortrows(AreaSumMOD, 1, 'descend');
+WaterSumMOD = sortrows(WaterSumMOD, 1, 'descend');
+CostsSumMOD = sortrows(CostsSumMOD, 1, 'descend');
+AreaSumMOD(1, :) = [];
+WaterSumMOD(1, :) = [];
+CostsSumMOD(1, :) = [];
+
+AreaSumADV = sortrows(AreaSumADV, 1, 'descend');
+WaterSumADV = sortrows(WaterSumADV, 1, 'descend');
+CostsSumADV = sortrows(CostsSumADV, 1, 'descend');
+AreaSumADV(1, :) = [];
+WaterSumADV(1, :) = [];
+CostsSumADV(1, :) = [];
+
+AreaSumADV_NUC = sortrows(AreaSumADV_NUC, 1, 'descend');
+WaterSumADV_NUC = sortrows(WaterSumADV_NUC, 1, 'descend');
+CostsSumADV_NUC = sortrows(CostsSumADV_NUC, 1, 'descend');
+AreaSumADV_NUC(1, :) = [];
+WaterSumADV_NUC(1, :) = [];
+CostsSumADV_NUC(1, :) = [];
+
 
 nexttile
 
 
-%%Order = {'Base Year', 'NoPolicy - 2030', 'Moderate - 2030', 'Advanced - 2030'};
-Order = {'Base Year', 'No Policy - 2050', 'Moderate - 2050', 'Advanced - 2050'};
-y = [AreaSum1{1:4,1}, AreaSum1{1:4,34}, AreaSum2{1:4,34}, AreaSum3{1:4,34}];
-%%y = [AreaSum1{1:4,1}, AreaSum1{1:4,14}, AreaSum2{1:4,14}, AreaSum3{1:4,14}];
+%%Order
+Order = {'Base Year', 'No Policy - 2050', 'Moderate - 2050', 'Advanced - 2050', 'Advanced + Nuclear - 2050'};
+y = [AreaSumBAU{1:4,1}, AreaSumBAU{1:4,34}, AreaSumMOD{1:4,34}, AreaSumADV{1:4,34}, AreaSumADV_NUC{1:4,34}];
 y = y';
-%%x = categorical({'Base Year', 'NoPolicy - 2030', 'Moderate - 2030', 'Advanced - 2030'});
-x = categorical({'Base Year', 'No Policy - 2050', 'Moderate - 2050', 'Advanced - 2050'});
+x = categorical({'Base Year', 'No Policy - 2050', 'Moderate - 2050', 'Advanced - 2050', 'Advanced + Nuclear - 2050'});
 x = reordercats(x, Order);
 b = bar(x, y, 'stacked');
 for i = 1:numel(b)
     set(b(i), 'FaceColor', colors2Area(i, :));
 end
-% ** CHANGED **
+
 ylim([0 85000])
-title('Area', 'FontSize',14,'Position', [2.5, 86296, 0]);
+title('Area', 'FontSize', 14, 'Position', [2.5, 86296, 0]);
 xticklabels(Order);
 xtickangle(20);
 xlabel('Scenarios', 'FontSize', 20);
 ylabel('km^2', 'FontSize', 20);
-legend(flip(b), flip(AreaSum3.Properties.RowNames(1:4)), 'FontSize',10,'Location','northwest')
+legend(flip(b), flip(AreaSumADV.Properties.RowNames(1:4)), 'FontSize', 10, 'Location', 'northwest');
 
-Order = {'Base Year', 'No Policy - 2050', 'Moderate - 2050', 'Advanced - 2050'};
-y = [WaterSum1{1:5,1}, WaterSum1{1:5,34}, WaterSum2{1:5,34}, WaterSum3{1:5,34}];
+Order = {'Base Year', 'No Policy - 2050', 'Moderate - 2050', 'Advanced - 2050', 'Advanced + Nuclear - 2050'};
+y = [WaterSumBAU{1:5,1}, WaterSumBAU{1:5,34}, WaterSumMOD{1:5,34}, WaterSumADV{1:5,34}, WaterSumADV_NUC{1:5,34}];
 y = y';
-x = categorical({'Base Year', 'No Policy - 2050', 'Moderate - 2050', 'Advanced - 2050'});
+x = categorical({'Base Year', 'No Policy - 2050', 'Moderate - 2050', 'Advanced - 2050', 'Advanced + Nuclear - 2050'});
 x = reordercats(x, Order);
 nexttile
 b = bar(x, y, 'stacked');
@@ -251,19 +262,24 @@ for i = 1:numel(b)
     set(b(i), 'FaceColor', colors3Water(i, :));
 end
 
-ylim([0 7500]) 
-title('Water', 'FontSize', 14,'Position', [2.5, 7638, 0]);
+ylim([0 7500])
+title('Water', 'FontSize', 14, 'Position', [2.5, 7638, 0]);
 xlabel('Scenarios', 'FontSize', 20);
 xticklabels(Order);
 xtickangle(20);
 ylabel('Million m^3', 'FontSize', 20);
-legend(flip(b), flip(WaterSum3.Properties.RowNames(1:5)), 'FontSize',10,'Location','northwest')
+legend(flip(b), flip(WaterSumADV.Properties.RowNames(1:5)), 'FontSize', 10, 'Location', 'northwest');
 
-%% COST
-Order = {'Base Year', 'NoPolicy - 2050', 'Moderate - 2050', 'Advanced - 2050'};
-y = [CostsSum1{1:4,1}, CostsSum1{1:4,34}, CostsSum2{1:4,34}, CostsSum3{1:4,34}];
+%% COST by Tal
+%Order = {'Base Year', 'NoPolicy - 2050', 'Moderate - 2050', 'Advanced - 2050'};
+Order = {'Base Year', 'No Policy - 2050', 'Moderate - 2050', 'Advanced - 2050', 'Advanced + Nuclear - 2050'};
+t = tiledlayout(1,1);
+
+y = [CostsSumBAU{1:4,1}, CostsSumBAU{1:4,34}, CostsSumMOD{1:4,34}, CostsSumADV{1:4,34} , CostsSumADV_NUC{1:4,34}];
 y = y';
-x = categorical({'Base Year', 'NoPolicy - 2050', 'Moderate - 2050', 'Advanced - 2050'});
+%x = categorical({'Base Year', 'NoPolicy - 2050', 'Moderate - 2050', 'Advanced - 2050'});
+x = categorical({'Base Year', 'No Policy - 2050', 'Moderate - 2050', 'Advanced - 2050', 'Advanced + Nuclear - 2050'});
+
 x = reordercats(x, Order);
 nexttile
 b = bar(x, y, 'stacked');
@@ -276,7 +292,67 @@ ylim([0 400])
 title('Costs', 'FontSize', 14);
 xlabel('Scenarios', 'FontSize', 20);
 ylabel('Billion ILS', 'FontSize', 20);
-legend(flip(b), flip(CostsSum3.Properties.RowNames(1:4)), 'FontSize',10,'Location','northwest')
+legend(flip(b), flip(CostsSumADV.Properties.RowNames(1:4)), 'FontSize',10,'Location','northwest')
+%% COST by NZO
+%Order = {'Base Year', 'NoPolicy - 2050', 'Moderate - 2050', 'Advanced - 2050'};
+Order = {'Base Year', 'No Policy - 2050', 'Moderate - 2050', 'Advanced - 2050', 'Advanced + Nuclear - 2050'};
+t = tiledlayout(1,1);
+
+
+% Extract columns 13 to 17
+NZOcostBAU = NZOscenarioBAU(:, 13:17);
+NZOcostMOD = NZOscenarioMOD(:, 13:17);
+NZOcostADV = NZOscenarioADV(:, 13:17);
+NZOcostADV_NUC = NZOscenarioADV_NUC(:, 13:17);
+for i = 4:Years
+    NZOcostADV_NUC{i-3,6} = ResourcesADV_NUC{9, i}{1}{1, 'NuclerCapex'};
+    NZOcostADV_NUC{i-3,7} = ResourcesADV_NUC{9, i}{1}{1, 'NuclerOperatingCost'};
+NZOcostBAU{i-3,6} = 0;
+    NZOcostBAU{i-3,7} = 0;
+NZOcostMOD{i-3,6} =0;
+    NZOcostMOD{i-3,7} = 0;
+NZOcostADV{i-3,6} = 0;
+    NZOcostADV{i-3,7} = 0;
+
+end
+
+NZOcostADV_NUC.Properties.VariableNames{6} = 'NuclerCapex';
+NZOcostADV_NUC.Properties.VariableNames{7} = 'NuclerOperatingCost';
+
+NZOcostBAU.Properties.VariableNames{6} = 'NuclerCapex';
+NZOcostBAU.Properties.VariableNames{7} = 'NuclerOperatingCost';
+NZOcostMOD.Properties.VariableNames{6} = 'NuclerCapex';
+NZOcostMOD.Properties.VariableNames{7} = 'NuclerOperatingCost';
+NZOcostADV.Properties.VariableNames{6} = 'NuclerCapex';
+NZOcostADV.Properties.VariableNames{7} = 'NuclerOperatingCost';
+
+
+y = [NZOcostBAU{1,1:7}, NZOcostBAU{31,1:7}, NZOcostMOD{31,1:7}, NZOcostADV{31,1:7} , NZOcostADV_NUC{31,1:7}];
+
+
+% Reshape the data so that each factor is a column
+numFactors = 7; % Number of columns
+numSamples = length(y) / numFactors; % Number of rows
+y_reshaped = reshape(y, numFactors, numSamples)';
+y = y_reshaped;
+y= y/10^9;
+
+%x = categorical({'Base Year', 'NoPolicy - 2050', 'Moderate - 2050', 'Advanced - 2050'});
+x = categorical({'Base Year', 'No Policy - 2050', 'Moderate - 2050', 'Advanced - 2050', 'Advanced + Nuclear - 2050'});
+
+x = reordercats(x, Order);
+nexttile
+b = bar(x, y, 'stacked');
+
+for i = 1:numel(b)
+    set(b(i), 'FaceColor', colors1Em(i, :));
+end
+
+ylim([0 600]) 
+title('Costs', 'FontSize', 14);
+xlabel('Scenarios', 'FontSize', 20);
+ylabel('Billion ILS', 'FontSize', 20);
+legend(flip(b), flip(NZOcostADV_NUC.Properties.VariableNames(1:7)), 'FontSize',10,'Location','northwest')
 %% Discussion - emissions
 % To be used after selecting "sensitivity analysis"
 

@@ -184,6 +184,7 @@ DataBase.EmissionsCoefficientsUpstreamElectricity = table2array(readtable(Data,'
 DataBase.ElectrictyManufacturingCoefficients = table2array(readtable(Data,'Sheet','ElectricityManufactureEmissions','Range','B33:E33','ReadVariableNames',false));
 CrudeOilToFuelRatio = readtable(Data,'Sheet','ElectricityManufactureEmissions','Range','R28:R28','ReadVariableNames',false);
 DataBase.CrudeOilToFuelRatio = CrudeOilToFuelRatio{1,1};
+DataBase.EmissionsCoefficientsForStorage = readtable(Data,'Sheet','StorageEmissions','Range','A1:B35','ReadVariableNames',true);
 
 %% Calc transportation consumption
 
@@ -273,3 +274,9 @@ DataBase.ChnageStruct.Electricity = readtable("The Three Scenarios.xlsx",'Sheet'
 DataBase.ChnageStruct.Water = readtable("The Three Scenarios.xlsx",'Sheet','ChangesInConsumptionType','Range','A8:B12','ReadRowNames',true);
 DataBase.ChnageStruct.Transportation = readtable("The Three Scenarios.xlsx",'Sheet','ChangesInConsumptionType','Range','A15:B21','ReadRowNames',true);
 DataBase.ChnageStruct.Food = readtable("The Three Scenarios.xlsx",'Sheet','ChangesInConsumptionType','Range','D2:E65','ReadRowNames',true);
+%% installed capacity for outside models
+RowNames = {'electricity production by renewable resources','Solar PV mw','Wind mw','Battery Size mw','Nuclear mw','Grow rate to NZO model'};
+DataBase.InstalledCapacityForOutsideMod = readtable(Data,'Sheet','InstalledCapacityForOutside','Range','B2:H7','ReadVariableNames', false);
+ColNames = {'B.A.U', 'MOD', 'ADV', 'ADV+NUC', 'M.O.E 1', 'M.O.E 2', 'M.O.E 3'};
+DataBase.InstalledCapacityForOutsideMod.Properties.VariableNames = ColNames;
+DataBase.InstalledCapacityForOutsideMod.Properties.RowNames = RowNames;

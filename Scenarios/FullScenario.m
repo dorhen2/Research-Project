@@ -1,4 +1,4 @@
-function [EmissionsByYears,ConsumptionAmounts, Resources, WaterFromFoodCell] = FullScenario(Data,ScenariosTable,Years,pop,orderIndex, index)
+function [EmissionsByYears,ConsumptionAmounts, Resources, WaterFromFoodCell,ElectricityBySources] = FullScenario(Data,ScenariosTable,Years,pop,orderIndex, index,scenarioName)
 %% Cut Vectors from Scenarios Table
 
 PopulationGrowthPercentage = ScenariosTable{1,:};
@@ -20,6 +20,7 @@ TransitionToElectricTruck = ScenariosTable{16,:};
 TransitionToElectricBus = ScenariosTable{17,:};
 %%Scenario18 = ScenariosTable{18,:}; %% vehicles improved emissions coefficients
 WaterSaving = ScenariosTable{19,:};
+
 
 %% Preparations - scenario 1`
 
@@ -259,8 +260,8 @@ for i=1:Years
     WasteAndRecyclingCell{i} = CurrentWaste;
 end
 %% Electricity emissions
-ElectricityBySources = array2table(zeros(7,Years));
-ElectricityBySources.Properties.RowNames = {'KWh From Coal', 'KWh From Natural Gas', 'KWh From Renewable Energies', 'KWh From Soler', 'KWh From Mazut', 'KWh From Waste Incinaration', 'Total'};
+ElectricityBySources = array2table(zeros(8,Years));
+ElectricityBySources.Properties.RowNames = {'KWh From Coal', 'KWh From Natural Gas', 'KWh From Renewable Energies', 'KWh From Soler', 'KWh From Mazut', 'KWh From Waste Incinaration', 'KWh From Nucler', 'Total'};
 ElectricityBySources.Properties.VariableNames = YearsStringsForColNames;
 
 PreviousYearElectricity = ElectricityBySources{:,1}; %tables of zeros- for the first iteration.
@@ -285,13 +286,21 @@ for i=1:Years
     % The amount of water for global food per cubic meter is twice the electricity coefficients for global water in KWH per cubic meter.
     % The electricity coefficient discount is for producing and transporting fresh water
     ElectricityConsumptionTable{6,i} = CurrentYearElectricity(6);
+    ElectricityConsumptionTable{7,i} = sum(CurrentYearElectricity);
     [EmissionsByYears{2,i}, ElectricityBySources{1:6,i}] = CalcElectricityConsumption(Data, CurrentYearElectricity, PercentageOfElectricitySourcesByYears{:,i},WasteInciniration(i));
 
     % Shiri's Adjustments: allowing changes in PV emissions - sending the
     % function the consumption of the prev year in order to find the delta,and the year (i) so we can calculate the current emissions
-    [EmissionsByYears{3,i},ConsumptionAmounts{2,i}] = CalcElectricityManufacturing(Data, CurrentYearElectricity, PreviousYearElectricity, PercentageOfElectricitySourcesByYears{:,:}, i);
+    [EmissionsByYears{3,i},ConsumptionAmounts{2,i}] = CalcElectricityManufacturing(Data, CurrentYearElectricity, PreviousYearElectricity, PercentageOfElectricitySourcesByYears{:,:}, i,scenarioName);
     
-    ElectricityBySources{7,i} = sum(ElectricityBySources{1:6,i});
+    if Data.InstalledCapacityForOutsideMod{'Nuclear mw',scenarioName}>0
+        ElectricityBySources{7,i} = Data.InstalledCapacityForOutsideMod{'Nuclear mw',scenarioName}*0.9*8760*1000;
+        ElectricityBySources{3,i} = ElectricityBySources{3,i} - ElectricityBySources{7,i};
+    else
+        ElectricityBySources{7,i} = 0;
+    end
+
+    ElectricityBySources{8,i} = sum(ElectricityBySources{1:7,i});
     PreviousYearElectricity = CurrentYearElectricity; % updating for the next iteration
 
 end
@@ -304,7 +313,7 @@ end
 %     [EmissionsByYears{8,i}, EmissionsByYears{9,i}] = CalcConsumptionEmissions(WasteAndRecyclingCell{i} ,Data);
 % end
 
-Resources = cell(8,Years);
+Resources = cell(9,Years);
 % Area
 KWForElectricity = array2table(zeros(7,Years));
   
@@ -397,6 +406,12 @@ for i = 2:Years
             Resources{8,i} = InitBuiltArea;
     end
 end
+%% NZO Total Cost
+for i = 4:Years
+      Resources{9,i} = array2table(Data.NZOscenarioTable{i-3, 13:17}, ...
+        'VariableNames', Data.NZOscenarioTable.Properties.VariableNames(13:17));
+end
+
 %% Create Final Table
 
 RowNames = {'Food', 'Electricity - Direct', 'Electricity - Indirect', 'Transportation - Direct', 'Train Emissions','Transportation - Indirect', 'Construction', 'Consumption Emissions' ,'Fuel for Industry', 'Sewege Treatment'}; %, 'Water from food'
@@ -407,7 +422,7 @@ RowNames = {'Water', 'Fuels For Electriciy Manufacturing', 'Fuels For Transporta
 ConsumptionAmounts = cell2table(ConsumptionAmounts, 'RowNames', RowNames);
 ConsumptionAmounts.Properties.VariableNames = YearsStringsForColNames;
 
-RowNames = {'Area For Electricity', 'Cumulative Area','Area For Food', 'Operating Costs', 'Setting Costs', 'Fuels Costs', 'Cost Of Area For PV','Area For Construction'};
+RowNames = {'Area For Electricity', 'Cumulative Area','Area For Food', 'Operating Costs', 'Setting Costs', 'Fuels Costs', 'Area For PV','Area For Construction','NZO Total Cost'};
 Resources = cell2table(Resources);
 Resources.Properties.RowNames = RowNames;
 Resources.Properties.VariableNames = YearsStringsForColNames;
