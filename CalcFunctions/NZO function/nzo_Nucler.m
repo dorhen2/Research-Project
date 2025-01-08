@@ -1,6 +1,6 @@
 %% Nucler by ROTH
 tic;   
-fileName = 'ROTH 1 Model.xlsx'; % Target Excel file
+fileName = fullfile('Data', 'ROTH 1 Model.xlsx'); % Target Excel file with correct path
 sheetName = 'ROTH 1.0'; % Target sheet
 
 % Define the columns to process (excluding ADV)
